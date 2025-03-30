@@ -3,7 +3,9 @@ local log = require("quake.log")
 local util = require("quake.util")
 
 local function default_c_formatter(data)
-	return data.condition_icon .. " " .. data.temp
+	if data ~= nil then
+		return data.condition_icon .. " " .. data.temp
+	end
 end
 
 local result = {}

@@ -92,32 +92,43 @@ function Quake:location_lookup(callback)
 	})
 end
 
-function Quake:update_last_query_time()
-	self.data:update_last_query_time(os.time())
-end
-
-function Quake:get_data_with_location(last_query_time, geo_location, location)
+function Quake:get_data_with_location(context, geo_location, location)
 	--print("get data with loc" .. vim.inspect(geo_location))
 	for _, source in ipairs(self.config.default.default_sources) do
 		local object = require("quake.sources." .. source)
-		local _ = object.get(last_query_time, geo_location, location, self.config, self.weather_config, function(data)
-			if data.failure then
-				self.last_update = data
-				notify(data.failure.msg, "error", { title = "Error" })
-				return
-			end
-			self.last_update = data
-			for _, v in pairs(subscriptions) do
-				--print("data from get location" .. vim.inspect(data))
-				v(data)
-			end
+		local last_query_time = context[source].last_query_time
 
-			if data and data.success then
-				vim.schedule(function()
-					self:update_last_query_time()
-				end)
-			end
-		end)
+		--local diffs = os.difftime(os.time(), last_query_time)
+		--if diffs < (config.settings.update_interval / 1000) then
+		--	return
+		--end
+
+		local args = {
+			last_query_time = last_query_time,
+			geo_location = geo_location,
+			location = location,
+			config = self.config,
+			weather_config = self.weather_config,
+			callback = function(data)
+				if data.failure then
+					self.last_update = data
+					notify(data.failure.msg, "error", { title = "Error" })
+					return
+				end
+				self.last_update = data
+				for _, v in pairs(subscriptions) do
+					--print("data from get location" .. vim.inspect(data))
+					v(data)
+				end
+
+				if data and data.success then
+					vim.schedule(function()
+						self.data:update_last_query_time(source, os.time())
+					end)
+				end
+			end,
+		}
+		local _ = object.get(args)
 	end
 end
 
@@ -169,7 +180,6 @@ end
 
 function Quake:update_source_data()
 	local context = self.data.data -- self.data.data is the context table
-	local last_query_time = context.last_query_time
 	local rev_geo_location = {}
 
 	if self.config.settings.location then
@@ -184,13 +194,13 @@ function Quake:update_source_data()
 				}
 			end
 			--print("calling with geo loca" .. vim.inspect(rev_geo_location))
-			self:get_data_with_location(last_query_time, rev_geo_location, self.config.settings.location)
+			self:get_data_with_location(context, rev_geo_location, self.config.settings.location)
 		end)
 	else
 		self:location_lookup(function(location_response)
 			if location_response.success then
 				--print("location response is success")
-				self:get_data_with_location(last_query_time, nil, location_response.success)
+				self:get_data_with_location(context, nil, location_response.success)
 			else
 				notify("No internet connection", "error", { title = "Error" })
 				--for _, s in pairs(subscriptions) do

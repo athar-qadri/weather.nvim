@@ -1,60 +1,85 @@
-local curl = require("plenary.curl")
-local desc = require("quake.assets.descriptions")
-local os = require("os")
+-- Import external libraries and modules:
+local curl = require("plenary.curl") -- Used for making HTTP requests.
+local desc = require("quake.assets.descriptions") -- Contains weather description mappings.
 ---@diagnostic disable-next-line: unused-local
-local log = require("quake.log")
+local log = require("quake.log") -- Logging module (currently unused).
 
-local M = {}
+-- Define a Lua "class" for meteo functionality.
+---@class meteo
+---@field get fun(args: table, callback: fun(data: table))
+local meteo = {}
 
--- Does a raw call to openweathermap, returning a table with either:
--- "success": table containing the parsed json response from https://openweathermap.org/api/one-call-api
--- "failure": string with the error message
----@diagnostic disable-next-line: unused-local
-M.get_raw = function(args, callback)
-	--print("meteo get raw")
+--------------------------------------------------------------------------------
+-- M.get_raw:
+-- This function makes a raw HTTP GET request to the weather API.
+-- It returns either:
+--   - "success": a table with parsed JSON from the API,
+--   - "failure": a table with an error message.
+--------------------------------------------------------------------------------
+meteo.get_raw = function(args, callback)
+	-- Using plenary.curl to perform the HTTP GET request.
 	curl.get({
-		--url = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2025-03-09T23:53:52&endtime=2025-03-09T23:53:59",
+		-- Uncommented example URL for USGS events is kept for reference.
+		-- url = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2025-03-09T23:53:52&endtime=2025-03-09T23:53:59",
 		url = "https://api.open-meteo.com/v1/forecast",
-		query = args,
+		query = args, -- Pass query parameters from the args.
 		callback = function(response)
+			-- Check if there was an error (non-zero exit code or HTTP error status).
 			if response.exit ~= 0 or response.status > 400 or response.status < 200 then
 				callback({
 					failure = {
-						message = response.body,
+						message = response.body, -- Return the error message from the response.
 					},
 				})
 				return
 			end
+			-- Use vim.schedule to ensure the JSON decoding runs on the main loop.
 			vim.schedule(function()
 				local response_table = vim.fn.json_decode(response.body)
 				callback({
-					success = response_table,
+					success = response_table, -- Return the decoded JSON data.
 				})
 			end)
 		end,
+		-- on_error is called if curl fails to make the request.
 		on_error = function()
 			callback({
 				failure = {
-					message = "Oops, something went wrong",
+					message = "Oops, something went wrong", -- Generic error message.
 				},
 			})
 		end,
 	})
 end
 
+--------------------------------------------------------------------------------
+-- get_icon:
+-- This helper function determines the appropriate weather icon based on the
+-- current weather code and whether it is day or night.
+--------------------------------------------------------------------------------
 local function get_icon(meteo, config)
-	local id = meteo.current.weather_code
-	local val = config.meteo.weather_code_to_icons[id]
-	local icons = config.weather_icons.night
-	if meteo.current.is_day == 1 then
-		icons = config.weather_icons.day
+	local id = meteo.current.weather_code -- Retrieve current weather code.
+	local val = config.meteo.weather_code_to_icons[id] -- Map weather code to an icon identifier.
+	local icons = config.weather_icons.night -- Default to night icons.
+	if meteo.current.is_day == 1 then -- Check if it's day.
+		icons = config.weather_icons.day -- Use day icons instead.
 	end
+	-- Return the specific icon if available, otherwise return the identifier.
 	return icons[val] or val
 end
 
--- Maps a quaka data object to a Quake object.
-local function parse_weather_data(data, config, weather_config, rev_geo_location, location)
-	--print("parse_weather_data")
+--------------------------------------------------------------------------------
+-- parse_weather_data:
+-- Converts the raw data from the API into a Quake-specific formatted response.
+-- It checks for errors, builds notifications, and formats the output string.
+--------------------------------------------------------------------------------
+local function parse_weather_data(data, args)
+	local config = args.config
+	local weather_config = args.weather_config
+	local rev_geo_location = args.rev_geo_location
+	local location = args.location
+
+	-- If the API returned an error, return a failure message.
 	if data.failure then
 		return {
 			failure = {
@@ -62,10 +87,12 @@ local function parse_weather_data(data, config, weather_config, rev_geo_location
 			},
 		}
 	end
+
+	-- Check for error details in the success response.
 	if data.success.error then
 		return {
 			failure = {
-				msg = data.success.reason or "68Oops, something went wrong",
+				msg = data.success.reason or "Oops, something went wrong",
 			},
 		}
 	end
@@ -73,50 +100,45 @@ local function parse_weather_data(data, config, weather_config, rev_geo_location
 	local notifications = {}
 	local a = data.success
 
-	-- a.current.apparent_temperature,
-	-- a.current.interval,
-	-- a.current.is_day,
-	-- a.current.precipitation,
-	-- a.current.rain,
-	-- a.current.temperature_2m,
-	-- a.current.time,
-	-- a.daily.temperature_2m_max[1],
-	-- a.daily.temperature_2m_min[1],
-	-- a.current.weather_code,
-
+	-- Determine the correct weather icon using the helper function.
 	local weather_icon = get_icon(data.success, weather_config)
 
+	-- Calculate minimum width for the notification message.
 	local min_width = require("notify.config").setup().minimum_width()
 	local city = nil
-	--print("parse weather geo loca" .. vim.inspect(rev_geo_location))
-
 	if rev_geo_location then
-		city = rev_geo_location.name
+		city = rev_geo_location.name -- Use reverse geolocation to set city name.
 	end
 
+	-- Format the main weather data:
 	local temp = a.current.temperature_2m
 	local unit = string.upper(config.settings.temperature_unit:sub(1, 1))
+	-- Choose description based on day/night.
 	local weather_desc = desc[a.current.weather_code][(a.current.is_day == 1) and "day" or "night"].description
+	-- Left part of the message includes temperature, unit, icon, and description.
 	local left = string.format("%.1f°%s %s %s", temp, unit, weather_icon, weather_desc)
-
+	-- Right part of the message includes high and low temperatures.
 	local right = string.format("H:%.1f° L:%.1f°", a.daily.temperature_2m_max[1], a.daily.temperature_2m_min[1])
 	local total_content_len = #left + #right
 	local message
+	-- Adjust spacing if the total message is shorter than the minimum width.
 	if total_content_len + 1 <= min_width then
 		local spaces_to_add = min_width - total_content_len
 		message = left .. string.rep("  ", spaces_to_add) .. right
 	else
 		message = left .. " " .. right
 	end
-	local level = "warn"
-	--print(vim.inspect(location))
-	local options = { title = city or location.city }
 
+	local level = "warn" -- Notification level (e.g., warn, info, etc.).
+	local options = { title = city or location.city } -- Title for the notification popup.
+
+	-- Insert the formatted notification into the notifications table.
 	table.insert(notifications, {
 		message = message,
 		level = level,
 		options = options,
 	})
+	-- Return the final formatted data including both notification and data details.
 	return {
 		success = {
 			alert = notifications,
@@ -125,31 +147,39 @@ local function parse_weather_data(data, config, weather_config, rev_geo_location
 	}
 end
 
----comment
----@param last_query_time Epoch
----@param rev_geo_location any
----@param location any
----@param config QuakeConfig
----@param weather_config QuakeWeatherConfig
----@param callback any
-M.get = function(last_query_time, rev_geo_location, location, config, weather_config, callback)
-	--print("meteo get")
-	local diffs = os.difftime(os.time(), last_query_time)
+---@class Args
+---@field last_query_time number  -- Last query time in seconds
+---@field callback fun(data: table)  -- Callback to be invoked with the result
+---@field location any
+---@field config QuakeConfig
+---@field weather_config QuakeWeatherConfig
+---@field rev_geo_location any
+--------------------------------------------------------------------------------
+-- M.get:
+-- This is the main function to fetch weather data.
+-- It validates the input parameters, prepares the API query, and handles the
+-- asynchronous response by invoking the callback with parsed data.
+--------------------------------------------------------------------------------
+---@param args Args table
+meteo.get = function(args)
+	-- Ensure the essential arguments are of the correct type.
+	assert(type(args.last_query_time) == "number", "last_query_time must be a number")
+	assert(type(args.callback) == "function", "callback must be a function")
 
-	--if diffs < (config.settings.update_interval / 1000) then
-	--	return
-	--end
-
-	local args = {
-		longitude = location.lon,
-		latitude = location.lat,
+	-- Prepare query parameters for the weather API.
+	local params = {
+		longitude = args.location.lon,
+		latitude = args.location.lat,
+		-- Request current weather details.
 		current = "temperature_2m,apparent_temperature,is_day,precipitation,rain,weather_code",
+		-- Request daily forecast details.
 		daily = "temperature_2m_max,temperature_2m_min",
-		temperature_unit = config.settings.temperature_unit,
+		temperature_unit = args.config.settings.temperature_unit,
 	}
-	M.get_raw(args, function(r)
-		callback(parse_weather_data(r, config, weather_config, rev_geo_location, location))
+	-- Call get_raw with the prepared params, then process the result.
+	meteo.get_raw(params, function(r)
+		args.callback(parse_weather_data(r, args))
 	end)
 end
 
-return M
+return meteo
