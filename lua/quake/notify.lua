@@ -14,6 +14,7 @@ result.start = function(text_wrap, notify_level, notify_opts)
 		stages = "fade",
 		timeout = 5000,
 		top_down = false,
+		background_colour = "#000000",
 	})
 	quake:subscribe("notify", function(data)
 		if data.failure then

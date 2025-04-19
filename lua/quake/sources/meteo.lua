@@ -57,11 +57,11 @@ end
 -- This helper function determines the appropriate weather icon based on the
 -- current weather code and whether it is day or night.
 --------------------------------------------------------------------------------
-local function get_icon(meteo, config)
-	local id = meteo.current.weather_code -- Retrieve current weather code.
+local function get_icon(data, config)
+	local id = data.current.weather_code -- Retrieve current weather code.
 	local val = config.meteo.weather_code_to_icons[id] -- Map weather code to an icon identifier.
 	local icons = config.weather_icons.night -- Default to night icons.
-	if meteo.current.is_day == 1 then -- Check if it's day.
+	if data.current.is_day == 1 then -- Check if it's day.
 		icons = config.weather_icons.day -- Use day icons instead.
 	end
 	-- Return the specific icon if available, otherwise return the identifier.
@@ -73,10 +73,11 @@ end
 -- Converts the raw data from the API into a Quake-specific formatted response.
 -- It checks for errors, builds notifications, and formats the output string.
 --------------------------------------------------------------------------------
+---@param args Args table
 local function parse_weather_data(data, args)
 	local config = args.config
 	local weather_config = args.weather_config
-	local rev_geo_location = args.rev_geo_location
+	local rev_geo_location = args.geo_location
 	local location = args.location
 
 	-- If the API returned an error, return a failure message.
@@ -107,7 +108,7 @@ local function parse_weather_data(data, args)
 	local min_width = require("notify.config").setup().minimum_width()
 	local city = nil
 	if rev_geo_location then
-		city = rev_geo_location.name -- Use reverse geolocation to set city name.
+		city = rev_geo_location.suburb -- Use reverse geolocation to set city name.
 	end
 
 	-- Format the main weather data:
@@ -153,7 +154,7 @@ end
 ---@field location any
 ---@field config QuakeConfig
 ---@field weather_config QuakeWeatherConfig
----@field rev_geo_location any
+---@field geo_location any
 --------------------------------------------------------------------------------
 -- M.get:
 -- This is the main function to fetch weather data.

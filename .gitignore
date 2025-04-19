@@ -6,6 +6,9 @@ luac.out
 *.zip
 *.tar.gz
 
+# python bytecode
+__pycache__
+
 # Object files
 *.o
 *.os
@@ -39,3 +42,7 @@ luac.out
 *.x86_64
 *.hex
 
+.env
+.direnv/
+.testenv/
+venv/

@@ -4,7 +4,7 @@ local util = require("quake.util")
 
 local function default_c_formatter(data)
 	if data ~= nil then
-		return data.condition_icon .. " " .. data.temp
+		return data.condition_icon .. "" .. data.temp
 	end
 end
 

@@ -40,11 +40,18 @@ function Quake:__debug_reset()
 	require("plenary.reload").reload_module("quake")
 end
 
---- subscribe function
+function Quake:unsubscribe(id)
+	table[id] = nil
+end
+
+---subscribe function
 ---@param id string
 ---@param callback function
 function Quake:subscribe(id, callback)
 	assert(type(callback) == "function", "Callback must be a function")
+	if id == "weather_now" then
+		self:unsubscribe(id)
+	end
 	assert(subscriptions[id] == nil, "Subscribed to weather updates with existing id: " .. id)
 	subscriptions[id] = callback
 	if self.last_update then
@@ -116,6 +123,9 @@ function Quake:get_data_with_location(context, geo_location, location)
 					return
 				end
 				self.last_update = data
+				--print("...")
+				--print(vim.inspect(subscriptions))
+				--print("...")
 				for _, v in pairs(subscriptions) do
 					--print("data from get location" .. vim.inspect(data))
 					v(data)
@@ -144,7 +154,7 @@ local function geo_reverse_lookup(location, callback)
 			format = "json",
 			lat = location.lat,
 			lon = location.lon,
-			zoom = 14,
+			zoom = 18,
 			addressdetails = 1,
 			["accept-language"] = "en",
 		},
@@ -193,7 +203,6 @@ function Quake:update_source_data()
 					suburb = data.success.suburb,
 				}
 			end
-			--print("calling with geo loca" .. vim.inspect(rev_geo_location))
 			self:get_data_with_location(context, rev_geo_location, self.config.settings.location)
 		end)
 	else
@@ -239,5 +248,10 @@ function Quake.setup(self, partial_config)
 
 	return self
 end
+
+vim.api.nvim_create_user_command("WeatherNow", function()
+	local quake = require("quake")
+	quake:update_source_data()
+end, {})
 
 return the_quake
