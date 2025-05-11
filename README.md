@@ -46,7 +46,7 @@ Stay updated on the world around you with `weather.nvim`. This plugin fetches we
 Install `weather.nvim` with [lazy.nvim](https://github.com/folke/lazy.nvim) using this example:
 
 ```lua
-return {
+{
   "athar-qadri/weather.nvim",
   dependencies = {
     "nvim-lua/plenary.nvim",  -- Required for HTTP requests
