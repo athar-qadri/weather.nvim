@@ -131,10 +131,13 @@ If `settings.location` is not set, the plugin uses [ip-api.com](http://ip-api.co
 
 After installation and configuration, `weather.nvim` starts fetching data automatically based on your settings.
 
+
 - **Manual Update**: Run `:WeatherNow` to trigger an immediate update.
 - **Notifications**: Alerts appear via `nvim-notify` (if installed). Examples:
   - Weather: "25.3°C ☀️ Sunny" with high/low temps.
   - Earthquake: "Magnitude: 4.5 Coordinates: -122.4, 37.8 Place: San Francisco Time: 2023-10-15 14:30:00".
+    
+    <img width="1512" alt="Screenshot 2025-05-11 at 6 23 44 PM" src="https://github.com/user-attachments/assets/ac842542-493a-42af-b744-04c605481296" />
 
 ---
 
