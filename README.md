@@ -98,7 +98,7 @@ use {
 Configure `weather.nvim` by calling the `setup` function with a configuration table. Here’s an example with default values:
 
 ```lua
-require('weather').setup({
+require('weather'):setup({
   settings = {
     update_interval = 15 * 60 * 1000,  -- 15 minutes in milliseconds
     temperature_unit = "celsius",      -- "celsius" or "fahrenheit"
