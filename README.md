@@ -40,7 +40,9 @@ Stay updated on the world around you with `weather.nvim`. This plugin fetches we
 ---
 
 ## Installation
-
+* neovim 0.8.0+ required
+* install using your favorite plugin manager (i am using `lazy` in this case)
+  
 ### Using Lazy.nvim
 
 Install `weather.nvim` with [lazy.nvim](https://github.com/folke/lazy.nvim) using this example:
