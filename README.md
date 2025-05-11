@@ -1,2 +1,2 @@
-# quake.nvim
+# weather.nvim
 WIP
