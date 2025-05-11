@@ -140,6 +140,8 @@ After installation and configuration, `weather.nvim` starts fetching data automa
 
 ### Lualine Integration
 
+<img width="1512" alt="Screenshot 2025-05-11 at 2 39 27 PM" src="https://github.com/user-attachments/assets/cf2b6e46-f919-4428-b2fc-b969531ee29d" />
+
 Display current weather in your status line with [lualine.nvim](https://github.com/nvim-lualine/lualine.nvim). Here’s an excerpt from a custom configuration:
 
 ```lua
