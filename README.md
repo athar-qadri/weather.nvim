@@ -182,4 +182,4 @@ Contributions are welcome! Please submit issues or pull requests on the [GitHub 
 
 ## License
 
-Released under the [MIT License](LICENSE).
+Released under the [GPL-3.0 license](LICENSE).
