@@ -172,7 +172,7 @@ require('lualine').setup({
 })
 ```
 
-For the full configuration including all modes and additional components, refer to the [repository](https://github.com/athar-qadri/weather.nvim) and my [dotfiles] (https://github.com/athar-qadri/dotfiles).
+For the full configuration including all modes and additional components, refer to the [repository](https://github.com/athar-qadri/weather.nvim) and my [dotfiles](https://github.com/athar-qadri/dotfiles).
 
 ---
 
