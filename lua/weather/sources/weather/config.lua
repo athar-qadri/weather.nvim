@@ -5,7 +5,7 @@ local result = {}
 -- icons, then modify them in `default_icons` to change a few to their
 -- corresponding night icons.
 
----@class QuakeWeatherConfig
+---@class WeatherWeatherConfig
 ---@field default table
 
 local function day()

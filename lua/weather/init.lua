@@ -1,53 +1,53 @@
 local curl = require("plenary.curl")
-local Config = require("quake.config")
-local weather_config = require("quake.sources.weather.config").default
-local Data = require("quake.data")
+local Config = require("weather.config")
+local weather_config = require("weather.sources.weather.config").default
+local Data = require("weather.data")
 local notify = require("notify")
 ---@diagnostic disable-next-line: unused-local
-local log = require("quake.log")
+local log = require("weather.log")
 
----@class Quake
----@field config QuakeConfig
----@field weather_config QuakeWeatherConfig
----@field data QuakeData
+---@class Weather
+---@field config WeatherConfig
+---@field weather_config WeatherWeatherConfig
+---@field data WeatherData
 ---@field subscribers table
----@field update_source_data function
+---@field update_source_data fun(self: Weather): nil
 ---@field location_lookup function
 ---@field subscribe function
 ---@field last_update table
-local Quake = {}
+local Weather = {}
 
-Quake.__index = Quake
+Weather.__index = Weather
 
 local timer = nil
 local subscriptions = {}
 
----@return Quake
-function Quake:new()
+---@return Weather
+function Weather:new()
 	local config = Config.get_default_config()
 
-	local quake = setmetatable({
+	local weather = setmetatable({
 		config = config,
 		weather_config = weather_config,
 		data = Data.Data:new(config),
 		subscribers = {},
 	}, self)
 
-	return quake
+	return weather
 end
 
-function Quake:__debug_reset()
-	require("plenary.reload").reload_module("quake")
+function Weather:__debug_reset()
+	require("plenary.reload").reload_module("weather")
 end
 
-function Quake:unsubscribe(id)
+function Weather:unsubscribe(id)
 	table[id] = nil
 end
 
 ---subscribe function
 ---@param id string
 ---@param callback function
-function Quake:subscribe(id, callback)
+function Weather:subscribe(id, callback)
 	assert(type(callback) == "function", "Callback must be a function")
 	if id == "weather_now" then
 		self:unsubscribe(id)
@@ -61,7 +61,7 @@ end
 
 ---location lookup from ip address
 ---@param callback function
-function Quake:location_lookup(callback)
+function Weather:location_lookup(callback)
 	curl.get({
 		url = "http://ip-api.com/json?fields=status,country,countryCode,region,regionName,city,zip,lat,lon",
 		--url = "http://ip-api.com/json/191.48.0.1",
@@ -99,10 +99,10 @@ function Quake:location_lookup(callback)
 	})
 end
 
-function Quake:get_data_with_location(context, geo_location, location)
+function Weather:get_data_with_location(context, geo_location, location)
 	--print("get data with loc" .. vim.inspect(geo_location))
 	for _, source in ipairs(self.config.default.default_sources) do
-		local object = require("quake.sources." .. source)
+		local object = require("weather.sources." .. source)
 		local last_query_time = context[source].last_query_time
 
 		--local diffs = os.difftime(os.time(), last_query_time)
@@ -154,7 +154,7 @@ local function geo_reverse_lookup(location, callback)
 			format = "json",
 			lat = location.lat,
 			lon = location.lon,
-			zoom = 18,
+			zoom = 13,
 			addressdetails = 1,
 			["accept-language"] = "en",
 		},
@@ -188,7 +188,8 @@ local function geo_reverse_lookup(location, callback)
 	})
 end
 
-function Quake:update_source_data()
+function Weather:update_source_data()
+	assert(self.data, "No data")
 	local context = self.data.data -- self.data.data is the context table
 	local rev_geo_location = {}
 
@@ -220,17 +221,17 @@ function Quake:update_source_data()
 	end
 end
 
-local the_quake = Quake:new()
+local the_weather = Weather:new()
 
----Sets up the configuration and begins fetching weather/earthquake data.
----@param self Quake
----@param partial_config QuakePartialConfig?
----@return Quake
-function Quake.setup(self, partial_config)
-	if self ~= the_quake then
+---Sets up the configuration and begins fetching weather/earthweather data.
+---@param self Weather
+---@param partial_config WeatherPartialConfig?
+---@return Weather
+function Weather.setup(self, partial_config)
+	if self ~= the_weather then
 		---@diagnostic disable-next-line: cast-local-type
 		partial_config = self
-		self = the_quake
+		self = the_weather
 	end
 
 	local config = self.config
@@ -250,8 +251,8 @@ function Quake.setup(self, partial_config)
 end
 
 vim.api.nvim_create_user_command("WeatherNow", function()
-	local quake = require("quake")
-	quake:update_source_data()
+	local weather = require("weather")
+	weather:update_source_data()
 end, {})
 
-return the_quake
+return the_weather

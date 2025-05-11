@@ -1,4 +1,4 @@
-local log = require("quake.log")
+local log = require("weather.log")
 local M = {}
 
 M.wrap_text = function(str, limit, indent, indent1)

@@ -1,14 +1,17 @@
-local quake = require("quake")
+local quake = require("weather")
 local notify = require("notify")
 
 local result = {}
-
 result.start = function(text_wrap, notify_level, notify_opts)
 	local wrap = text_wrap or 70
 	local l = notify_level or "error"
 	local opts = notify_opts or {
 		icon = "⚠️",
 	}
+
+	---@diagnostic disable-next-line: undefined-global
+	vim.api.nvim_set_hl(0, "NotifyBackground", { bg = "#000000" })
+
 	notify:setup({
 		--minimum_width = 60, -- Set the minimum width for notifications
 		stages = "fade",

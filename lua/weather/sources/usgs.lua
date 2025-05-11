@@ -1,7 +1,7 @@
 -- Import external libraries and modules.
 local curl = require("plenary.curl") -- For making HTTP requests.
 local os = require("os") -- Provides operating system functions (e.g., date, time).
-local log = require("quake.log") -- Logging module (currently not used).
+local log = require("weather.log") -- Logging module (currently not used).
 
 -- Define module table.
 local M = {}
@@ -159,11 +159,10 @@ M.get = function(args)
 		starttime = os.date("!%Y-%m-%dT%TZ", last_query_time), -- Format last query time in UTC.
 		endtime = os.date("!%Y-%m-%dT%TZ", os.time()), -- Current UTC time.
 		minmagnitude = minimum_magnitude,
-		-- Optional: Uncomment and add location filtering parameters if needed.
-		--longitude = location.lon,
-		--latitude = location.lat,
-		----maxradius = 180,
-		--maxradiuskm = 40,
+		longitude = location.lon,
+		latitude = location.lat,
+		----maxradius = 181,
+		maxradiuskm = 500,
 	}
 	-- Invoke the raw API call and pass the parsed result to the provided callback.
 	M.get_raw(params, function(r)

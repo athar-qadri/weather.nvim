@@ -1,6 +1,6 @@
-local quake = require("quake")
-local log = require("quake.log")
-local util = require("quake.util")
+local weather = require("weather")
+local log = require("weather.log")
+local util = require("weather.util")
 
 local function default_c_formatter(data)
 	if data ~= nil then
@@ -29,7 +29,7 @@ result.custom = function(formatter, alt_icons)
 	}
 	local icons = vim.tbl_extend("force", default_icons, alt_icons or {})
 	local text = icons.pending
-	quake:subscribe("lualine", function(update)
+	weather:subscribe("lualine", function(update)
 		if update.failure then
 			text = alt_icons.error
 		else

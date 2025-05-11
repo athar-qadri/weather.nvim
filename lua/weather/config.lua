@@ -1,38 +1,38 @@
 ---@diagnostic disable-next-line: unused-local
-local log = require("quake.log")
+local log = require("weather.log")
 local M = {}
 
----@class QuakePartialConfigItem
+---@class WeatherPartialConfigItem
 ---@field minimum_radius? number
 ---@field minimum_magnitude? number
 ---@field update_interval number
 ---@field default_sources? table
 
----@class QuakeSettings
+---@class WeatherSettings
 ---@field update_interval Epoch
 ---@field temperature_unit string
 ---@field location? any
 
----@class QuakePartialSettings
+---@class WeatherPartialSettings
 ---@field update_interval Epoch
 ---@field temperature_unit string
 
----@class QuakePartialConfig
----@field defaults? QuakePartialConfigItem
----@field setting? QuakePartialSettings
----@field [string] QuakePartialConfigItem
+---@class WeatherPartialConfig
+---@field defaults? WeatherPartialConfigItem
+---@field setting? WeatherPartialSettings
+---@field [string] WeatherPartialConfigItem
 
----@class QuakeConfig
----@field settings QuakeSettings
----@field default QuakePartialConfigItem
+---@class WeatherConfig
+---@field settings WeatherSettings
+---@field default WeatherPartialConfigItem
 
 function M.get_config(config, name)
 	return vim.tbl_extend("force", {}, config.default, config[name] or {})
 end
 
----@param partial_config QuakePartialConfig?
----@param latest_config QuakeConfig?
----@return QuakeConfig
+---@param partial_config WeatherPartialConfig?
+---@param latest_config WeatherConfig?
+---@return WeatherConfig
 function M.merge_config(partial_config, latest_config)
 	partial_config = partial_config or {}
 	local config = latest_config or M.get_default_config()

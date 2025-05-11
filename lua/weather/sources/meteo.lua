@@ -1,8 +1,8 @@
 -- Import external libraries and modules:
 local curl = require("plenary.curl") -- Used for making HTTP requests.
-local desc = require("quake.assets.descriptions") -- Contains weather description mappings.
+local desc = require("weather.assets.descriptions") -- Contains weather description mappings.
 ---@diagnostic disable-next-line: unused-local
-local log = require("quake.log") -- Logging module (currently unused).
+local log = require("weather.log") -- Logging module (currently unused).
 
 -- Define a Lua "class" for meteo functionality.
 ---@class meteo
@@ -152,8 +152,8 @@ end
 ---@field last_query_time number  -- Last query time in seconds
 ---@field callback fun(data: table)  -- Callback to be invoked with the result
 ---@field location any
----@field config QuakeConfig
----@field weather_config QuakeWeatherConfig
+---@field config WeatherConfig
+---@field weather_config WeatherWeatherConfig
 ---@field geo_location any
 --------------------------------------------------------------------------------
 -- M.get:

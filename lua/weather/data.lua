@@ -4,7 +4,7 @@ local os = require("os")
 local log = require("scratchpad.log")
 
 local ensured_data_path = false
-local data_path = string.format("%s/quake", vim.fn.stdpath("data"))
+local data_path = string.format("%s/weather", vim.fn.stdpath("data"))
 
 local function ensure_data_path()
 	if ensured_data_path then
@@ -46,9 +46,9 @@ end
 
 ---@alias Epoch number
 
----@class QuakeData
+---@class WeatherData
 ---@field has_error boolean
----@field config QuakeConfig
+---@field config WeatherConfig
 ---@field update_source_data function
 ---@field data table<string, {last_query_time: Epoch}>
 ---@field fetch_context function
@@ -60,8 +60,8 @@ local Data = {}
 Data.__index = Data
 
 --- Creates a new Data instance, ensuring default sources are initialized
----@param config QuakeConfig
----@return QuakeData
+---@param config WeatherConfig
+---@return WeatherData
 function Data:new(config)
 	local data = read_data()
 	-- Ensure all default sources have an initial last_query_time
