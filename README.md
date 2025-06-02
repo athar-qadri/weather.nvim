@@ -2,6 +2,8 @@
 
 **weather.nvim** brings real-time weather and earthquake alerts to Neovim without the need for any API keys, making it easy to set up and use. Using data from Open-Meteo for weather and USGS for earthquakes, it provides notifications about significant events based on your location—keeping you informed without leaving your workflow.
 
+
+<img width="1512" alt="Screenshot 2025-05-11 at 6 23 44 PM" src="https://github.com/user-attachments/assets/ac842542-493a-42af-b744-04c605481296" />
 ---
 
 ## Table of Contents
@@ -136,9 +138,7 @@ After installation and configuration, `weather.nvim` starts fetching data automa
 - **Notifications**: Alerts appear via `nvim-notify` (if installed). Examples:
   - Weather: "25.3°C ☀️ Sunny" with high/low temps.
   - Earthquake: "Magnitude: 4.5 Coordinates: -122.4, 37.8 Place: San Francisco Time: 2023-10-15 14:30:00".
-    
-    <img width="1512" alt="Screenshot 2025-05-11 at 6 23 44 PM" src="https://github.com/user-attachments/assets/ac842542-493a-42af-b744-04c605481296" />
-
+     
 ---
 
 ## Integration
