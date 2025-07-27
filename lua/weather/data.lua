@@ -1,7 +1,7 @@
 local Path = require("plenary.path")
 local os = require("os")
 ---@diagnostic disable-next-line: unused-local
-local log = require("scratchpad.log")
+local log = require("weather.log")
 
 local ensured_data_path = false
 local data_path = string.format("%s/weather", vim.fn.stdpath("data"))
