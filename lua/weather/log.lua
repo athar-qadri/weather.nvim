@@ -9,7 +9,7 @@
 -- User configuration section
 local default_config = {
 	-- Name of the plugin. Prepended to log messages
-	plugin = "scratchpad.nvim",
+	plugin = "weather.nvim",
 
 	-- Should print the output to neovim while running
 	use_console = true,
